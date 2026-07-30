@@ -11,7 +11,11 @@ import AVFoundation
 import Foundation
 
 @MainActor
-final class ElevenLabsTTSClient {
+final class ElevenLabsTTSClient: BuddyTTSProvider {
+    let displayName = "ElevenLabs"
+    var isConfigured: Bool { true }
+    var unavailableExplanation: String? { nil }
+
     private let proxyURL: URL
     private let session: URLSession
 
@@ -36,14 +40,20 @@ final class ElevenLabsTTSClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("audio/mpeg", forHTTPHeaderField: "Accept")
 
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "text": text,
-            "model_id": "eleven_flash_v2_5",
+            "model_id": BuddyLanguageSupport.defaultTTSModelIdentifier,
             "voice_settings": [
                 "stability": 0.5,
                 "similarity_boost": 0.75
             ]
         ]
+
+        // Flash v2.5 supports language_code for zh/en enforcement. Omit for mixed
+        // responses so the model auto-detects per sentence.
+        if let languageCode = BuddyLanguageSupport.preferredTTSLanguageCode(for: text) {
+            body["language_code"] = languageCode
+        }
 
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 

@@ -1,0 +1,55 @@
+# Development
+
+## Local Environment
+
+```bash
+python3.12 -m venv .venv
+. .venv/bin/activate
+pip install -U pip
+pip install -e .
+```
+
+The tested MLX stack is:
+
+```text
+mlx==0.31.2
+mlx-lm==0.29.1
+transformers==4.57.6
+safetensors==0.8.0
+huggingface_hub==0.36.2
+soundfile==0.14.0
+librosa==0.11.0
+numpy==2.4.6
+numba==0.65.1
+llvmlite==0.47.0
+qwen-asr==0.0.6
+```
+
+Or use the managed launcher:
+
+```bash
+scripts/qwen3-asr-mlx-bridge --print-capabilities
+```
+
+## Lightweight Checks
+
+```bash
+python -m py_compile qwen3_asr_mlx_runtime/runtime.py qwen3_asr_mlx_runtime/bridge.py
+bash -n scripts/qwen3-asr-mlx-bridge
+python -m qwen3_asr_mlx_runtime.bridge --print-capabilities
+```
+
+The launcher writes `$VENV/.qwen3-asr-mlx-packages` after installing the tested
+package set. Later runs skip dependency resolution unless the pinned package
+list changes.
+
+## Metal Check
+
+The full ASR path requires Metal access. In headless or sandboxed macOS
+sessions, MLX may fail with:
+
+```text
+[metal::load_device] No Metal device available
+```
+
+Run generation tests from a process that can access the Apple GPU.

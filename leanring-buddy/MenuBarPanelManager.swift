@@ -107,6 +107,11 @@ final class MenuBarPanelManager: NSObject {
         return image
     }
 
+    /// Opens the menu bar dropdown panel (e.g. from notch settings gear).
+    func openPanel() {
+        showPanel()
+    }
+
     /// Opens the panel automatically on app launch so the user sees
     /// permissions and the start button right away.
     func showPanelOnLaunch() {

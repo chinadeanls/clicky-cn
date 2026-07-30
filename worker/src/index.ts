@@ -1,18 +1,18 @@
 /**
  * Clicky Proxy Worker
  *
- * Proxies requests to Claude and ElevenLabs APIs so the app never
- * ships with raw API keys. Keys are stored as Cloudflare secrets.
+ * Proxies TTS and legacy STT token requests so the app never ships raw API keys.
+ * Chat/vision runs locally via pi-mono ai-server (Gemini), not through this worker.
  *
  * Routes:
- *   POST /chat  → Anthropic Messages API (streaming)
- *   POST /tts   → ElevenLabs TTS API
+ *   POST /tts   → ElevenLabs TTS API (bilingual zh+en via Flash v2.5)
+ *   POST /transcribe-token → AssemblyAI streaming token
  */
 
 interface Env {
-  ANTHROPIC_API_KEY: string;
   ELEVENLABS_API_KEY: string;
   ELEVENLABS_VOICE_ID: string;
+  ELEVENLABS_TTS_MODEL?: string;
   ASSEMBLYAI_API_KEY: string;
 }
 
@@ -25,10 +25,6 @@ export default {
     }
 
     try {
-      if (url.pathname === "/chat") {
-        return await handleChat(request, env);
-      }
-
       if (url.pathname === "/tts") {
         return await handleTTS(request, env);
       }
@@ -47,37 +43,6 @@ export default {
     return new Response("Not found", { status: 404 });
   },
 };
-
-async function handleChat(request: Request, env: Env): Promise<Response> {
-  const body = await request.text();
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body,
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    console.error(`[/chat] Anthropic API error ${response.status}: ${errorBody}`);
-    return new Response(errorBody, {
-      status: response.status,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  return new Response(response.body, {
-    status: response.status,
-    headers: {
-      "content-type": response.headers.get("content-type") || "text/event-stream",
-      "cache-control": "no-cache",
-    },
-  });
-}
 
 async function handleTranscribeToken(env: Env): Promise<Response> {
   const response = await fetch(
@@ -107,8 +72,20 @@ async function handleTranscribeToken(env: Env): Promise<Response> {
 }
 
 async function handleTTS(request: Request, env: Env): Promise<Response> {
-  const body = await request.text();
+  const requestBodyText = await request.text();
   const voiceId = env.ELEVENLABS_VOICE_ID;
+  const defaultModelId = env.ELEVENLABS_TTS_MODEL ?? "eleven_flash_v2_5";
+
+  let requestBody = requestBodyText;
+  try {
+    const parsedBody = JSON.parse(requestBodyText) as Record<string, unknown>;
+    if (typeof parsedBody.model_id !== "string" || parsedBody.model_id.trim() === "") {
+      parsedBody.model_id = defaultModelId;
+    }
+    requestBody = JSON.stringify(parsedBody);
+  } catch {
+    // Pass through non-JSON bodies unchanged.
+  }
 
   const response = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
@@ -119,7 +96,7 @@ async function handleTTS(request: Request, env: Env): Promise<Response> {
         "content-type": "application/json",
         accept: "audio/mpeg",
       },
-      body,
+      body: requestBody,
     }
   );
 

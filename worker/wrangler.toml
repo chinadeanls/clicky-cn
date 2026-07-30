@@ -4,3 +4,5 @@ compatibility_date = "2024-01-01"
 
 [vars]
 ELEVENLABS_VOICE_ID = "kPzsL2i3teMYv0FxEYQ6"
+# Multilingual model supporting Chinese + English (32 languages, ~75ms latency)
+ELEVENLABS_TTS_MODEL = "eleven_flash_v2_5"

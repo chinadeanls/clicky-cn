@@ -1,7 +1,12 @@
 worker/node_modules/
+scripts/pi-proxy/node_modules/
 worker/.dev.vars
+.venv-qwen3-asr/
+.venv-qwen3-tts/
+.venv-kokoro-tts/
 .DS_Store
 *.xcuserstate
+**/xcuserdata/
 build/
 releases/
 .claude/

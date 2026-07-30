@@ -1,0 +1,7 @@
+# Copy to worker/.dev.vars and fill in your keys.
+# Then run: cd worker && npx wrangler dev
+#
+# Chat/vision uses local pi-mono ai-server (Gemini), not this worker.
+
+ASSEMBLYAI_API_KEY=...
+ELEVENLABS_API_KEY=...

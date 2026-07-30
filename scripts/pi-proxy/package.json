@@ -1,0 +1,8 @@
+{
+  "name": "clicky-pi-gemini-proxy",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@mariozechner/pi-ai": "^0.29.1"
+  }
+}

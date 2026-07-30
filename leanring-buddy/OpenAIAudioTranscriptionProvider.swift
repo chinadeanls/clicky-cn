@@ -233,11 +233,6 @@ private final class OpenAIAudioTranscriptionSession: BuddyStreamingTranscription
             usingBoundary: boundary
         )
         requestBodyData.appendMultipartFormField(
-            named: "language",
-            value: "en",
-            usingBoundary: boundary
-        )
-        requestBodyData.appendMultipartFormField(
             named: "response_format",
             value: "json",
             usingBoundary: boundary
@@ -264,15 +259,7 @@ private final class OpenAIAudioTranscriptionSession: BuddyStreamingTranscription
     }
 
     private func transcriptionPromptText() -> String? {
-        let normalizedKeyterms = keyterms
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-
-        guard !normalizedKeyterms.isEmpty else { return nil }
-
-        return """
-        This is a short push-to-talk transcript for a coding and product app. Expect product names, technical terms, and app-specific vocabulary such as: \(normalizedKeyterms.joined(separator: ", ")).
-        """
+        BuddyLanguageSupport.bilingualTranscriptionContextPrompt(keyterms: keyterms)
     }
 
     private func deliverFinalTranscript(_ transcriptText: String) {

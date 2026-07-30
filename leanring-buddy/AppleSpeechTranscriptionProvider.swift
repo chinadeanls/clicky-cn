@@ -44,11 +44,14 @@ final class AppleSpeechTranscriptionProvider: BuddyTranscriptionProvider {
     private static func makeBestAvailableSpeechRecognizer() -> SFSpeechRecognizer? {
         let preferredLocales = [
             Locale.autoupdatingCurrent,
+            Locale(identifier: "zh-CN"),
+            Locale(identifier: "zh-Hans"),
             Locale(identifier: "en-US")
         ]
 
         for preferredLocale in preferredLocales {
-            if let speechRecognizer = SFSpeechRecognizer(locale: preferredLocale) {
+            if let speechRecognizer = SFSpeechRecognizer(locale: preferredLocale),
+               speechRecognizer.isAvailable {
                 return speechRecognizer
             }
         }
